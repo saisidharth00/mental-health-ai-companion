@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    container_name: mh-backend
+    ports:
+      - "5001:5000"
+    restart: always
+  frontend:
+    build: ./frontend
+    container_name: mh-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: always
