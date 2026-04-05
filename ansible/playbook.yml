@@ -1,0 +1,40 @@
+---
+- name: Deploy Mental Health AI Companion
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+
+  vars:
+    app_name: "mental-health-ai-companion"
+    docker_username: "your-dockerhub-username"
+    k8s_dir: "../kubernetes"
+
+  tasks:
+    - name: Check Docker is running
+      command: docker info
+      register: docker_check
+      changed_when: false
+
+    - name: Pull latest backend image
+      command: docker pull {{ docker_username }}/mental-health-backend:latest
+      register: backend_pull
+
+    - name: Pull latest frontend image
+      command: docker pull {{ docker_username }}/mental-health-frontend:latest
+      register: frontend_pull
+
+    - name: Apply backend Kubernetes deployment
+      command: kubectl apply -f {{ k8s_dir }}/backend-deployment.yaml
+      ignore_errors: yes
+
+    - name: Apply frontend Kubernetes deployment
+      command: kubectl apply -f {{ k8s_dir }}/frontend-deployment.yaml
+      ignore_errors: yes
+
+    - name: Deployment summary
+      debug:
+        msg:
+          - "Deployment Complete!"
+          - "App: {{ app_name }}"
+          - "Backend:  {{ docker_username }}/mental-health-backend:latest"
+          - "Frontend: {{ docker_username }}/mental-health-frontend:latest"

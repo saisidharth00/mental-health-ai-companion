@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mh-backend
+  labels:
+    app: mh-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mh-backend
+  template:
+    metadata:
+      labels:
+        app: mh-backend
+    spec:
+      containers:
+      - name: mh-backend
+        image: YOUR_DOCKERHUB_USERNAME/mental-health-backend:latest
+        ports:
+        - containerPort: 5000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mh-backend-service
+spec:
+  selector:
+    app: mh-backend
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: ClusterIP

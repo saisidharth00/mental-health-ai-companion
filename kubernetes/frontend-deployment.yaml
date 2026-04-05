@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mh-frontend
+  labels:
+    app: mh-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mh-frontend
+  template:
+    metadata:
+      labels:
+        app: mh-frontend
+    spec:
+      containers:
+      - name: mh-frontend
+        image: YOUR_DOCKERHUB_USERNAME/mental-health-frontend:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mh-frontend-service
+spec:
+  selector:
+    app: mh-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
