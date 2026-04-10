@@ -3,102 +3,545 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mental Health AI Companion</title>
+  <title>MH-AI Companion v2.0 — Emotional Support System</title>
+  <meta name="description" content="Futuristic Mental Health AI Companion — your personal emotional support system powered by advanced neural networks."/>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .container { width: 100%; max-width: 680px; height: 90vh; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); display: flex; flex-direction: column; overflow: hidden; }
-    .header { background: #5b6cf5; color: white; padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
-    .avatar { width: 40px; height: 40px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-    .header-text h1 { font-size: 17px; font-weight: 600; }
-    .header-text p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
-    .status-dot { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; margin-left: auto; }
-    .chat-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-    .bubble { max-width: 78%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.6; }
-    .bubble.bot { background: #f1f3ff; color: #1e1e2e; border-bottom-left-radius: 4px; align-self: flex-start; }
-    .bubble.user { background: #5b6cf5; color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
-    .bubble-row { display: flex; align-items: flex-end; gap: 8px; }
-    .bubble-row.user { flex-direction: row-reverse; }
-    .bot-icon { width: 28px; height: 28px; background: #5b6cf5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .typing { display: flex; gap: 4px; padding: 14px 16px; }
-    .typing span { width: 7px; height: 7px; background: #a0aec0; border-radius: 50%; animation: bounce 1.2s infinite; }
+    /* ═══════════════════ RESET & BASE ═══════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-card: #0d1229;
+      --bg-input: #111733;
+      --cyan: #00d4ff;
+      --purple: #7b2fff;
+      --pink: #ff3366;
+      --text-primary: #c8d6e5;
+      --text-muted: #5a6a80;
+      --border: rgba(0, 212, 255, 0.12);
+      --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+      --glow-purple: 0 0 20px rgba(123, 47, 255, 0.3);
+      --font: 'Share Tech Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ═══════════════════ SCANLINE EFFECT ═══════════════════ */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 212, 255, 0.015) 2px,
+        rgba(0, 212, 255, 0.015) 4px
+      );
+      animation: scanlines 8s linear infinite;
+    }
+
+    @keyframes scanlines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(100px); }
+    }
+
+    /* ═══════════════════ AMBIENT GLOW ═══════════════════ */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(0, 212, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(123, 47, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(255, 51, 102, 0.03) 0%, transparent 50%);
+    }
+
+    /* ═══════════════════ CONTAINER ═══════════════════ */
+    .container {
+      width: 100%;
+      max-width: 720px;
+      height: 96vh;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      box-shadow:
+        0 0 40px rgba(0, 212, 255, 0.06),
+        inset 0 0 80px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ═══════════════════ STATUS BAR ═══════════════════ */
+    .status-bar {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 8px 16px;
+      background: rgba(0, 212, 255, 0.04);
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    .status-dot.green { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+    .status-dot.cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+    .status-dot.purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ═══════════════════ HEADER ═══════════════════ */
+    .header {
+      padding: 20px 24px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      background: linear-gradient(180deg, rgba(0, 212, 255, 0.03) 0%, transparent 100%);
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow: 0 0 30px rgba(0, 212, 255, 0.5), 0 0 60px rgba(0, 212, 255, 0.2);
+      animation: glow-text 3s ease-in-out infinite alternate;
+    }
+
+    .header .subtitle {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+    }
+
+    .header .subtitle span {
+      color: #00ff88;
+    }
+
+    @keyframes glow-text {
+      0% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.4), 0 0 40px rgba(0, 212, 255, 0.15); }
+      100% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.7), 0 0 80px rgba(0, 212, 255, 0.3); }
+    }
+
+    /* ═══════════════════ CHAT AREA ═══════════════════ */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 212, 255, 0.2) transparent;
+    }
+
+    .chat-area::-webkit-scrollbar { width: 4px; }
+    .chat-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-area::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.2); border-radius: 2px; }
+
+    /* ═══════════════════ CHAT BUBBLES ═══════════════════ */
+    .bubble-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      animation: fade-in 0.4s ease-out;
+    }
+
+    .bubble-row.user {
+      flex-direction: row-reverse;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bot-icon {
+      width: 32px; height: 32px;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.05);
+      flex-shrink: 0;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+    }
+
+    .bubble {
+      max-width: 75%;
+      padding: 14px 18px;
+      font-size: 13px;
+      line-height: 1.7;
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .bubble.bot {
+      background: rgba(0, 212, 255, 0.04);
+      color: var(--text-primary);
+      border-left: 2px solid var(--cyan);
+      box-shadow: -4px 0 15px rgba(0, 212, 255, 0.1);
+    }
+
+    .bubble.user {
+      background: rgba(123, 47, 255, 0.08);
+      color: var(--text-primary);
+      border-right: 2px solid var(--purple);
+      box-shadow: 4px 0 15px rgba(123, 47, 255, 0.1);
+    }
+
+    /* ═══════════════════ TYPING INDICATOR ═══════════════════ */
+    .typing {
+      display: flex;
+      gap: 6px;
+      padding: 14px 18px;
+      align-items: center;
+    }
+
+    .typing span {
+      width: 8px; height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+      animation: typing-pulse 1.4s ease-in-out infinite;
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+    }
+
     .typing span:nth-child(2) { animation-delay: 0.2s; }
     .typing span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
-    .mood-bar { padding: 10px 20px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #f0f0f0; background: #fafafa; }
-    .mood-bar span { font-size: 11px; color: #888; align-self: center; }
-    .chip { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: all 0.15s; color: #4a5568; }
-    .chip:hover { background: #5b6cf5; color: white; border-color: #5b6cf5; }
-    .input-bar { padding: 16px 20px; display: flex; gap: 10px; border-top: 1px solid #f0f0f0; background: white; }
-    .input-bar input { flex: 1; padding: 11px 16px; border: 1.5px solid #e2e8f0; border-radius: 24px; font-size: 14px; outline: none; transition: border-color 0.15s; }
-    .input-bar input:focus { border-color: #5b6cf5; }
-    .send-btn { width: 42px; height: 42px; background: #5b6cf5; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .send-btn:hover { background: #4757e0; }
-    .send-btn svg { width: 18px; height: 18px; fill: white; }
-    .disclaimer { text-align: center; font-size: 11px; color: #aaa; padding: 6px 20px 14px; background: white; }
+
+    @keyframes typing-pulse {
+      0%, 60%, 100% { transform: scale(0.6); opacity: 0.3; }
+      30% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ═══════════════════ MOOD CHIPS ═══════════════════ */
+    .mood-bar {
+      padding: 12px 20px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .mood-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .chip {
+      font-family: var(--font);
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 2px;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      background: rgba(0, 212, 255, 0.04);
+      color: var(--cyan);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chip::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .chip:hover::before {
+      left: 100%;
+    }
+
+    .chip:hover {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--cyan);
+      box-shadow: var(--glow-cyan);
+      color: #fff;
+    }
+
+    .chip:active {
+      transform: scale(0.96);
+    }
+
+    /* ═══════════════════ INPUT BAR ═══════════════════ */
+    .input-bar {
+      padding: 16px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .input-bar input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      border-radius: 2px;
+      font-size: 13px;
+      font-family: var(--font);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-bar input::placeholder {
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .input-bar input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.1), inset 0 0 15px rgba(0, 212, 255, 0.03);
+    }
+
+    .send-btn {
+      width: 44px; height: 44px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .send-btn:hover {
+      background: rgba(0, 212, 255, 0.2);
+      box-shadow: var(--glow-cyan);
+      border-color: var(--cyan);
+    }
+
+    .send-btn:active {
+      transform: scale(0.92);
+    }
+
+    .send-btn svg {
+      width: 20px; height: 20px;
+      fill: var(--cyan);
+      filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.5));
+    }
+
+    /* ═══════════════════ DISCLAIMER ═══════════════════ */
+    .disclaimer {
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      padding: 10px 20px;
+      color: var(--pink);
+      background: rgba(255, 51, 102, 0.04);
+      border-top: 1px solid rgba(255, 51, 102, 0.15);
+      text-transform: uppercase;
+      animation: warning-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes warning-pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    /* ═══════════════════ RESPONSIVE ═══════════════════ */
+    @media (max-width: 768px) {
+      .container { height: 100vh; border-radius: 0; border: none; max-width: 100%; }
+      .header h1 { font-size: 16px; letter-spacing: 3px; }
+      .status-bar { gap: 12px; font-size: 8px; flex-wrap: wrap; justify-content: center; }
+      .bubble { max-width: 85%; }
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div class="avatar">&#129504;</div>
-    <div class="header-text">
-      <h1>Mental Health AI Companion</h1>
-      <p>Your safe space to talk &amp; reflect</p>
+<div class="container" id="app-container">
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-dot green"></div>
+      SYSTEM: ONLINE
     </div>
-    <div class="status-dot"></div>
+    <div class="status-item">
+      <div class="status-dot cyan"></div>
+      NEURAL LINK: ACTIVE
+    </div>
+    <div class="status-item">
+      <div class="status-dot purple"></div>
+      ENCRYPTION: ENABLED
+    </div>
   </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>MH-AI COMPANION v2.0</h1>
+    <div class="subtitle">EMOTIONAL SUPPORT SYSTEM // <span>ONLINE</span></div>
+  </div>
+
+  <!-- CHAT -->
   <div class="chat-area" id="chat">
     <div class="bubble-row">
-      <div class="bot-icon">&#129504;</div>
-      <div class="bubble bot">Hello! I'm your Mental Health AI Companion &#128153;<br><br>I'm here to listen, support, and chat with you. How are you feeling today?</div>
+      <div class="bot-icon">▣</div>
+      <div class="bubble bot">
+        SYSTEM INITIALIZED.<br><br>
+        Hello, I am your Mental Health AI Companion. My neural pathways are calibrated to listen, support, and assist you. How are you feeling today?
+      </div>
     </div>
   </div>
+
+  <!-- MOOD CHIPS -->
   <div class="mood-bar">
-    <span>Quick:</span>
-    <div class="chip" onclick="quickSend('I feel happy today')">Happy</div>
-    <div class="chip" onclick="quickSend('I feel sad today')">Sad</div>
-    <div class="chip" onclick="quickSend('I am feeling anxious')">Anxious</div>
-    <div class="chip" onclick="quickSend('I feel stressed')">Stressed</div>
-    <div class="chip" onclick="quickSend('I need someone to talk to')">Need to talk</div>
+    <span class="mood-label">Quick Access:</span>
+    <div class="chip" onclick="quickSend('I feel happy today')">▸ Happy</div>
+    <div class="chip" onclick="quickSend('I feel sad today')">▸ Sad</div>
+    <div class="chip" onclick="quickSend('I am feeling anxious')">▸ Anxious</div>
+    <div class="chip" onclick="quickSend('I feel stressed')">▸ Stressed</div>
+    <div class="chip" onclick="quickSend('I need someone to talk to')">▸ Need to talk</div>
   </div>
+
+  <!-- INPUT -->
   <div class="input-bar">
-    <input type="text" id="msg-input" placeholder="Share how you're feeling..." />
-    <button class="send-btn" onclick="sendMessage()">
+    <input type="text" id="msg-input" placeholder="ENTER MESSAGE..." autocomplete="off"/>
+    <button class="send-btn" id="send-button" onclick="sendMessage()">
       <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
     </button>
   </div>
-  <div class="disclaimer">This is an AI tool, not a substitute for professional mental health care. Crisis helpline: iCall 9152987821</div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">⚠ WARNING: THIS SYSTEM IS NOT A SUBSTITUTE FOR PROFESSIONAL MENTAL HEALTH CARE ⚠</div>
 </div>
+
 <script>
-  const BACKEND = "http://localhost:5000";
-  function quickSend(text) { document.getElementById("msg-input").value = text; sendMessage(); }
+  const BACKEND = "";
+
+  function quickSend(text) {
+    document.getElementById("msg-input").value = text;
+    sendMessage();
+  }
+
   function addBubble(text, role) {
     const chat = document.getElementById("chat");
-    const row = document.createElement("div"); row.className = "bubble-row " + role;
-    if (role === "bot") { const icon = document.createElement("div"); icon.className = "bot-icon"; icon.innerHTML = "&#129504;"; row.appendChild(icon); }
-    const bubble = document.createElement("div"); bubble.className = "bubble " + role; bubble.textContent = text;
-    row.appendChild(bubble); chat.appendChild(row); chat.scrollTop = chat.scrollHeight; return row;
+    const row = document.createElement("div");
+    row.className = "bubble-row " + role;
+
+    if (role === "bot") {
+      const icon = document.createElement("div");
+      icon.className = "bot-icon";
+      icon.textContent = "▣";
+      row.appendChild(icon);
+    }
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + role;
+    bubble.textContent = text;
+    row.appendChild(bubble);
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;
+    return row;
   }
+
   function showTyping() {
     const chat = document.getElementById("chat");
-    const row = document.createElement("div"); row.className = "bubble-row bot"; row.id = "typing-indicator";
-    const icon = document.createElement("div"); icon.className = "bot-icon"; icon.innerHTML = "&#129504;";
-    const bubble = document.createElement("div"); bubble.className = "bubble bot typing";
+    const row = document.createElement("div");
+    row.className = "bubble-row bot";
+    row.id = "typing-indicator";
+
+    const icon = document.createElement("div");
+    icon.className = "bot-icon";
+    icon.textContent = "▣";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble bot typing";
     bubble.innerHTML = "<span></span><span></span><span></span>";
-    row.appendChild(icon); row.appendChild(bubble); chat.appendChild(row); chat.scrollTop = chat.scrollHeight;
+
+    row.appendChild(icon);
+    row.appendChild(bubble);
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;
   }
-  function removeTyping() { const t = document.getElementById("typing-indicator"); if (t) t.remove(); }
+
+  function removeTyping() {
+    const t = document.getElementById("typing-indicator");
+    if (t) t.remove();
+  }
+
   async function sendMessage() {
     const input = document.getElementById("msg-input");
-    const message = input.value.trim(); if (!message) return;
-    addBubble(message, "user"); input.value = ""; showTyping();
+    const message = input.value.trim();
+    if (!message) return;
+
+    addBubble(message, "user");
+    input.value = "";
+    showTyping();
+
     try {
-      const res = await fetch(BACKEND + "/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message }) });
-      const data = await res.json(); removeTyping(); addBubble(data.response || "I'm here. Can you tell me more?", "bot");
-    } catch (err) { removeTyping(); addBubble("I'm having a little trouble connecting. Please try again.", "bot"); }
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+      const data = await res.json();
+      removeTyping();
+      addBubble(data.response || "I'm here. Can you tell me more?", "bot");
+    } catch (err) {
+      removeTyping();
+      addBubble("CONNECTION ERROR — Unable to reach neural network. Please try again.", "bot");
+    }
   }
-  document.getElementById("msg-input").addEventListener("keydown", function(e) { if (e.key === "Enter") sendMessage(); });
+
+  document.getElementById("msg-input").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") sendMessage();
+  });
 </script>
 </body>
 </html>
